@@ -1,29 +1,9 @@
-local array1 = function(a)
-  return { a }
-end
-
-local array2 = function(a)
-  return function(b)
-    return { a, b }
-  end
-end
-
-local array3 = function(a)
-  return function(b)
-    return function(c)
-      return { a, b, c }
-    end
-  end
-end
-
-local concat2 = function(xs)
-  return function(ys)
-    return table.concat(xs, ys)
-  end
-end
-
+local array1 = function(a) return {a} end
+local array2 = function(a) return function(b) return {a, b} end end
+local array3 = function(a) return function(b) return function(c) return {a, b, c} end end end
+local concat2 = function(xs) return function(ys) return table.concat(xs, ys) end end
 return {
-  traverseArrayImpl = function(apply)
+  traverseArrayImpl = (function(apply)
     return function(map)
       return function(pure)
         return function(f)
@@ -50,5 +30,5 @@ return {
         end
       end
     end
-  end
+  end)
 }

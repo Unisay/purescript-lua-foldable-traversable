@@ -19,7 +19,7 @@
     pslua \
     --foreign-path . \
     --ps-output output \
-    --lua-output-file dist/Data_Traversable.lua \
-    --entry Data.Traversable
+    --lua-output-file dist/Data_Foldable.lua \
+    --entry Data.Foldable
     ''
 }
