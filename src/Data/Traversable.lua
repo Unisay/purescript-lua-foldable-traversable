@@ -25,7 +25,7 @@ return {
               end
             end
 
-            return go(0, #array)
+            return go(1, #array + 1)
           end
         end
       end
