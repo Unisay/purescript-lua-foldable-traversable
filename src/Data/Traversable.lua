@@ -12,11 +12,11 @@ return {
                 if top - bot == 0 then
                   return pure({})
                 elseif top - bot == 1 then
-                  return map(array1)(f(array[bot]))
+                  return map(array1)(f(array[bot + 1]))
                 elseif top - bot == 2 then
-                  return apply(map(array2)(f(array[bot])))(f(array[bot + 1]))
+                  return apply(map(array2)(f(array[bot + 1])))(f(array[bot + 2]))
                 elseif top - bot == 3 then
-                  return apply(apply(map(array3)(f(array[bot])))(f(array[bot + 1])))(f(array[bot + 2]))
+                  return apply(apply(map(array3)(f(array[bot + 1])))(f(array[bot + 2])))(f(array[bot + 3]))
                 else
                   -- This slightly tricky pivot selection aims to produce two
                   -- even-length partitions where possible.
