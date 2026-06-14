@@ -1,6 +1,9 @@
 module Data.Traversable
-  ( class Traversable, traverse, sequence
-  , traverseDefault, sequenceDefault
+  ( class Traversable
+  , traverse
+  , sequence
+  , traverseDefault
+  , sequenceDefault
   , for
   , scanl
   , scanr
@@ -114,9 +117,9 @@ foreign import traverseArrayImpl
   -> m (Array b)
 
 instance traversableMaybe :: Traversable Maybe where
-  traverse _ Nothing  = pure Nothing
+  traverse _ Nothing = pure Nothing
   traverse f (Just x) = Just <$> f x
-  sequence Nothing  = pure Nothing
+  sequence Nothing = pure Nothing
   sequence (Just x) = Just <$> x
 
 instance traversableFirst :: Traversable First where
@@ -148,10 +151,10 @@ instance traversableMultiplicative :: Traversable Multiplicative where
   sequence (Multiplicative x) = Multiplicative <$> x
 
 instance traversableEither :: Traversable (Either a) where
-  traverse _ (Left x)  = pure (Left x)
+  traverse _ (Left x) = pure (Left x)
   traverse f (Right x) = Right <$> f x
   sequence (Left x) = pure (Left x)
-  sequence (Right x)  = Right <$> x
+  sequence (Right x) = Right <$> x
 
 instance traversableTuple :: Traversable (Tuple a) where
   traverse f (Tuple x y) = Tuple x <$> f y
@@ -165,11 +168,20 @@ instance traversableConst :: Traversable (Const a) where
   traverse _ (Const x) = pure (Const x)
   sequence (Const x) = pure (Const x)
 
-instance traversableProduct :: (Traversable f, Traversable g) => Traversable (Product f g) where
-  traverse f (Product (Tuple fa ga)) = lift2 product (traverse f fa) (traverse f ga)
+instance traversableProduct ::
+  ( Traversable f
+  , Traversable g
+  ) =>
+  Traversable (Product f g) where
+  traverse f (Product (Tuple fa ga)) = lift2 product (traverse f fa)
+    (traverse f ga)
   sequence (Product (Tuple fa ga)) = lift2 product (sequence fa) (sequence ga)
 
-instance traversableCoproduct :: (Traversable f, Traversable g) => Traversable (Coproduct f g) where
+instance traversableCoproduct ::
+  ( Traversable f
+  , Traversable g
+  ) =>
+  Traversable (Coproduct f g) where
   traverse f = coproduct
     (map (Coproduct <<< Left) <<< traverse f)
     (map (Coproduct <<< Right) <<< traverse f)
@@ -177,7 +189,11 @@ instance traversableCoproduct :: (Traversable f, Traversable g) => Traversable (
     (map (Coproduct <<< Left) <<< sequence)
     (map (Coproduct <<< Right) <<< sequence)
 
-instance traversableCompose :: (Traversable f, Traversable g) => Traversable (Compose f g) where
+instance traversableCompose ::
+  ( Traversable f
+  , Traversable g
+  ) =>
+  Traversable (Compose f g) where
   traverse f (Compose fga) = map Compose $ traverse (traverse f) fga
   sequence = traverse identity
 
@@ -216,7 +232,8 @@ for x f = traverse f x
 -- | scanl (-) 10 [1,2,3] = [9,7,4]
 -- | ```
 scanl :: forall a b f. Traversable f => (b -> a -> b) -> b -> f a -> f b
-scanl f b0 xs = (mapAccumL (\b a -> let b' = f b a in { accum: b', value: b' }) b0 xs).value
+scanl f b0 xs =
+  (mapAccumL (\b a -> let b' = f b a in { accum: b', value: b' }) b0 xs).value
 
 -- | Fold a data structure from the left, keeping all intermediate results
 -- | instead of only the final result.
@@ -241,7 +258,8 @@ mapAccumL f s0 xs = stateL (traverse (\a -> StateL \s -> f s a) xs) s0
 -- | scanr (flip (-)) 10 [1,2,3] = [4,5,7]
 -- | ```
 scanr :: forall a b f. Traversable f => (a -> b -> b) -> b -> f a -> f b
-scanr f b0 xs = (mapAccumR (\b a -> let b' = f a b in { accum: b', value: b' }) b0 xs).value
+scanr f b0 xs =
+  (mapAccumR (\b a -> let b' = f a b in { accum: b', value: b' }) b0 xs).value
 
 -- | Fold a data structure from the right, keeping all intermediate results
 -- | instead of only the final result.

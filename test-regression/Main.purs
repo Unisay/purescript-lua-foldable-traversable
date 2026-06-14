@@ -19,7 +19,8 @@ main = do
   assertEqual { actual: traverse Just ([] :: Array Int), expected: Just [] }
   assertEqual { actual: traverse Just [ 1 ], expected: Just [ 1 ] }
   assertEqual { actual: traverse Just [ 1, 2, 3 ], expected: Just [ 1, 2, 3 ] }
-  assertEqual { actual: traverse Just [ 1, 2, 3, 4 ], expected: Just [ 1, 2, 3, 4 ] }
+  assertEqual
+    { actual: traverse Just [ 1, 2, 3, 4 ], expected: Just [ 1, 2, 3, 4 ] }
   assertEqual
     { actual: traverse Just [ 1, 2, 3, 4, 5, 6, 7, 8 ]
     , expected: Just [ 1, 2, 3, 4, 5, 6, 7, 8 ]

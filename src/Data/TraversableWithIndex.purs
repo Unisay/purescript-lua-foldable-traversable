@@ -1,5 +1,6 @@
-module Data.TraversableWithIndex 
-  ( class TraversableWithIndex, traverseWithIndex
+module Data.TraversableWithIndex
+  ( class TraversableWithIndex
+  , traverseWithIndex
   , traverseWithIndexDefault
   , forWithIndex
   , scanlWithIndex
@@ -35,7 +36,6 @@ import Data.Traversable.Accum (Accum)
 import Data.Traversable.Accum.Internal (StateL(..), StateR(..), stateL, stateR)
 import Data.Tuple (Tuple(..), curry)
 
-
 -- | A `Traversable` with an additional index.  
 -- | A `TraversableWithIndex` instance must be compatible with its
 -- | `Traversable` instance
@@ -52,8 +52,15 @@ import Data.Tuple (Tuple(..), curry)
 -- | ```
 -- |
 -- | A default implementation is provided by `traverseWithIndexDefault`.
-class (FunctorWithIndex i t, FoldableWithIndex i t, Traversable t) <= TraversableWithIndex i t | t -> i where
-  traverseWithIndex :: forall a b m. Applicative m => (i -> a -> m b) -> t a -> m (t b)
+class
+  ( FunctorWithIndex i t
+  , FoldableWithIndex i t
+  , Traversable t
+  ) <=
+  TraversableWithIndex i t
+  | t -> i where
+  traverseWithIndex
+    :: forall a b m. Applicative m => (i -> a -> m b) -> t a -> m (t b)
 
 -- | A default implementation of `traverseWithIndex` using `sequence` and `mapWithIndex`.
 traverseWithIndexDefault
@@ -89,11 +96,12 @@ instance traversableWithIndexConj :: TraversableWithIndex Unit Conj where
 instance traversableWithIndexDisj :: TraversableWithIndex Unit Disj where
   traverseWithIndex f = traverse $ f unit
 
-instance traversableWithIndexMultiplicative :: TraversableWithIndex Unit Multiplicative where
+instance traversableWithIndexMultiplicative ::
+  TraversableWithIndex Unit Multiplicative where
   traverseWithIndex f = traverse $ f unit
 
 instance traversableWithIndexEither :: TraversableWithIndex Unit (Either a) where
-  traverseWithIndex _ (Left x)  = pure (Left x)
+  traverseWithIndex _ (Left x) = pure (Left x)
   traverseWithIndex f (Right x) = Right <$> f unit x
 
 instance traversableWithIndexTuple :: TraversableWithIndex Unit (Tuple a) where
@@ -105,18 +113,36 @@ instance traversableWithIndexIdentity :: TraversableWithIndex Unit Identity wher
 instance traversableWithIndexConst :: TraversableWithIndex Void (Const a) where
   traverseWithIndex _ (Const x) = pure (Const x)
 
-instance traversableWithIndexProduct :: (TraversableWithIndex a f, TraversableWithIndex b g) => TraversableWithIndex (Either a b) (Product f g) where
-  traverseWithIndex f (Product (Tuple fa ga)) = lift2 product (traverseWithIndex (f <<< Left) fa) (traverseWithIndex (f <<< Right) ga)
+instance traversableWithIndexProduct ::
+  ( TraversableWithIndex a f
+  , TraversableWithIndex b g
+  ) =>
+  TraversableWithIndex (Either a b) (Product f g) where
+  traverseWithIndex f (Product (Tuple fa ga)) = lift2 product
+    (traverseWithIndex (f <<< Left) fa)
+    (traverseWithIndex (f <<< Right) ga)
 
-instance traversableWithIndexCoproduct :: (TraversableWithIndex a f, TraversableWithIndex b g) => TraversableWithIndex (Either a b) (Coproduct f g) where
+instance traversableWithIndexCoproduct ::
+  ( TraversableWithIndex a f
+  , TraversableWithIndex b g
+  ) =>
+  TraversableWithIndex (Either a b) (Coproduct f g) where
   traverseWithIndex f = coproduct
     (map (Coproduct <<< Left) <<< traverseWithIndex (f <<< Left))
     (map (Coproduct <<< Right) <<< traverseWithIndex (f <<< Right))
 
-instance traversableWithIndexCompose :: (TraversableWithIndex a f, TraversableWithIndex b g) => TraversableWithIndex (Tuple a b) (Compose f g) where
-  traverseWithIndex f (Compose fga) = map Compose $ traverseWithIndex (traverseWithIndex <<< curry f) fga
+instance traversableWithIndexCompose ::
+  ( TraversableWithIndex a f
+  , TraversableWithIndex b g
+  ) =>
+  TraversableWithIndex (Tuple a b) (Compose f g) where
+  traverseWithIndex f (Compose fga) = map Compose $ traverseWithIndex
+    (traverseWithIndex <<< curry f)
+    fga
 
-instance traversableWithIndexApp :: TraversableWithIndex a f => TraversableWithIndex a (App f) where
+instance traversableWithIndexApp ::
+  TraversableWithIndex a f =>
+  TraversableWithIndex a (App f) where
   traverseWithIndex f (App x) = App <$> traverseWithIndex f x
 
 -- | A version of `traverseWithIndex` with its arguments flipped.
@@ -157,7 +183,10 @@ scanlWithIndex
   -> f a
   -> f b
 scanlWithIndex f b0 xs =
-  (mapAccumLWithIndex (\i b a -> let b' = f i b a in { accum: b', value: b' }) b0 xs).value
+  ( mapAccumLWithIndex (\i b a -> let b' = f i b a in { accum: b', value: b' })
+      b0
+      xs
+  ).value
 
 -- | Fold a data structure from the left with access to the indices, keeping
 -- | all intermediate results instead of only the final result.
@@ -171,7 +200,9 @@ mapAccumLWithIndex
   -> s
   -> f a
   -> Accum s (f b)
-mapAccumLWithIndex f s0 xs = stateL (traverseWithIndex (\i a -> StateL \s -> f i s a) xs) s0
+mapAccumLWithIndex f s0 xs = stateL
+  (traverseWithIndex (\i a -> StateL \s -> f i s a) xs)
+  s0
 
 -- | Fold a data structure from the right with access to the indices, keeping
 -- | all intermediate results instead of only the final result. Note that the
@@ -188,7 +219,10 @@ scanrWithIndex
   -> f a
   -> f b
 scanrWithIndex f b0 xs =
-  (mapAccumRWithIndex (\i b a -> let b' = f i a b in { accum: b', value: b' }) b0 xs).value
+  ( mapAccumRWithIndex (\i b a -> let b' = f i a b in { accum: b', value: b' })
+      b0
+      xs
+  ).value
 
 -- | Fold a data structure from the right with access to the indices, keeping
 -- | all intermediate results instead of only the final result.
@@ -202,12 +236,16 @@ mapAccumRWithIndex
   -> s
   -> f a
   -> Accum s (f b)
-mapAccumRWithIndex f s0 xs = stateR (traverseWithIndex (\i a -> StateR \s -> f i s a) xs) s0
+mapAccumRWithIndex f s0 xs = stateR
+  (traverseWithIndex (\i a -> StateR \s -> f i s a) xs)
+  s0
 
 -- | A default implementation of `traverse` in terms of `traverseWithIndex`
 traverseDefault
   :: forall i t a b m
    . TraversableWithIndex i t
   => Applicative m
-  => (a -> m b) -> t a -> m (t b)
+  => (a -> m b)
+  -> t a
+  -> m (t b)
 traverseDefault f = traverseWithIndex (const f)
