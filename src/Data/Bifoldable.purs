@@ -54,7 +54,11 @@ instance bifoldableFlip :: Bifoldable p => Bifoldable (Flip p) where
   bifoldl r l u (Flip p) = bifoldl l r u p
   bifoldMap r l (Flip p) = bifoldMap l r p
 
-instance bifoldableProduct2 :: (Bifoldable f, Bifoldable g) => Bifoldable (Product2 f g) where
+instance bifoldableProduct2 ::
+  ( Bifoldable f
+  , Bifoldable g
+  ) =>
+  Bifoldable (Product2 f g) where
   bifoldr l r u m = bifoldrDefault l r u m
   bifoldl l r u m = bifoldlDefault l r u m
   bifoldMap l r (Product2 f g) = bifoldMap l r f <> bifoldMap l r g
@@ -105,8 +109,9 @@ bifoldlDefault
   -> c
 bifoldlDefault f g z p =
   unwrap
-    (unwrap
-      (bifoldMap (Dual <<< Endo <<< flip f) (Dual <<< Endo <<< flip g) p))
+    ( unwrap
+        (bifoldMap (Dual <<< Endo <<< flip f) (Dual <<< Endo <<< flip g) p)
+    )
     z
 
 -- | A default implementation of `bifoldMap` using `bifoldr`.
@@ -136,7 +141,6 @@ bifoldMapDefaultL
   -> p a b
   -> m
 bifoldMapDefaultL f g = bifoldl (\m a -> m <> f a) (\m b -> m <> g b) mempty
-
 
 -- | Fold a data structure, accumulating values in a monoidal type.
 bifold :: forall t m. Bifoldable t => Monoid m => t m m -> m

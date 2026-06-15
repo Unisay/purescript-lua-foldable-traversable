@@ -1,5 +1,7 @@
 module Data.Bitraversable
-  ( class Bitraversable, bitraverse, bisequence
+  ( class Bitraversable
+  , bitraverse
+  , bisequence
   , bitraverseDefault
   , bisequenceDefault
   , ltraverse
@@ -35,7 +37,13 @@ import Data.Tuple (Tuple(..))
 -- | - `bitraverseDefault`
 -- | - `bisequenceDefault`
 class (Bifunctor t, Bifoldable t) <= Bitraversable t where
-  bitraverse :: forall f a b c d. Applicative f => (a -> f c) -> (b -> f d) -> t a b -> f (t c d)
+  bitraverse
+    :: forall f a b c d
+     . Applicative f
+    => (a -> f c)
+    -> (b -> f d)
+    -> t a b
+    -> f (t c d)
   bisequence :: forall f a b. Applicative f => t (f a) (f b) -> f (t a b)
 
 instance bitraversableClown :: Traversable f => Bitraversable (Clown f) where
@@ -50,8 +58,14 @@ instance bitraversableFlip :: Bitraversable p => Bitraversable (Flip p) where
   bitraverse r l (Flip p) = Flip <$> bitraverse l r p
   bisequence (Flip p) = Flip <$> bisequence p
 
-instance bitraversableProduct2 :: (Bitraversable f, Bitraversable g) => Bitraversable (Product2 f g) where
-  bitraverse l r (Product2 f g) = Product2 <$> bitraverse l r f <*> bitraverse l r g
+instance bitraversableProduct2 ::
+  ( Bitraversable f
+  , Bitraversable g
+  ) =>
+  Bitraversable (Product2 f g) where
+  bitraverse l r (Product2 f g) = Product2 <$> bitraverse l r f <*> bitraverse l
+    r
+    g
   bisequence (Product2 f g) = Product2 <$> bisequence f <*> bisequence g
 
 instance bitraversableEither :: Bitraversable Either where

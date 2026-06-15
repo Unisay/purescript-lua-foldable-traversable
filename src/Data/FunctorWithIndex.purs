@@ -1,5 +1,7 @@
 module Data.FunctorWithIndex
-  ( class FunctorWithIndex, mapWithIndex, mapDefault
+  ( class FunctorWithIndex
+  , mapWithIndex
+  , mapDefault
   ) where
 
 import Prelude
@@ -35,7 +37,8 @@ import Data.Tuple (Tuple, curry)
 class Functor f <= FunctorWithIndex i f | f -> i where
   mapWithIndex :: forall a b. (i -> a -> b) -> f a -> f b
 
-foreign import mapWithIndexArray :: forall a b. (Int -> a -> b) -> Array a -> Array b
+foreign import mapWithIndexArray
+  :: forall a b. (Int -> a -> b) -> Array a -> Array b
 
 instance functorWithIndexArray :: FunctorWithIndex Int Array where
   mapWithIndex = mapWithIndexArray
@@ -76,16 +79,34 @@ instance functorWithIndexIdentity :: FunctorWithIndex Unit Identity where
 instance functorWithIndexConst :: FunctorWithIndex Void (Const a) where
   mapWithIndex _ (Const x) = Const x
 
-instance functorWithIndexProduct :: (FunctorWithIndex a f, FunctorWithIndex b g) => FunctorWithIndex (Either a b) (Product f g) where
-  mapWithIndex f (Product fga) = Product (bimap (mapWithIndex (f <<< Left)) (mapWithIndex (f <<< Right)) fga)
+instance functorWithIndexProduct ::
+  ( FunctorWithIndex a f
+  , FunctorWithIndex b g
+  ) =>
+  FunctorWithIndex (Either a b) (Product f g) where
+  mapWithIndex f (Product fga) = Product
+    (bimap (mapWithIndex (f <<< Left)) (mapWithIndex (f <<< Right)) fga)
 
-instance functorWithIndexCoproduct :: (FunctorWithIndex a f, FunctorWithIndex b g) => FunctorWithIndex (Either a b) (Coproduct f g) where
-  mapWithIndex f (Coproduct e) = Coproduct (bimap (mapWithIndex (f <<< Left)) (mapWithIndex (f <<< Right)) e)
+instance functorWithIndexCoproduct ::
+  ( FunctorWithIndex a f
+  , FunctorWithIndex b g
+  ) =>
+  FunctorWithIndex (Either a b) (Coproduct f g) where
+  mapWithIndex f (Coproduct e) = Coproduct
+    (bimap (mapWithIndex (f <<< Left)) (mapWithIndex (f <<< Right)) e)
 
-instance functorWithIndexCompose :: (FunctorWithIndex a f, FunctorWithIndex b g) => FunctorWithIndex (Tuple a b) (Compose f g) where
-  mapWithIndex f (Compose fga) = Compose $ mapWithIndex (mapWithIndex <<< curry f) fga
+instance functorWithIndexCompose ::
+  ( FunctorWithIndex a f
+  , FunctorWithIndex b g
+  ) =>
+  FunctorWithIndex (Tuple a b) (Compose f g) where
+  mapWithIndex f (Compose fga) = Compose $ mapWithIndex
+    (mapWithIndex <<< curry f)
+    fga
 
-instance functorWithIndexApp :: FunctorWithIndex a f => FunctorWithIndex a (App f) where
+instance functorWithIndexApp ::
+  FunctorWithIndex a f =>
+  FunctorWithIndex a (App f) where
   mapWithIndex f (App x) = App $ mapWithIndex f x
 
 -- | A default implementation of Functor's `map` in terms of `mapWithIndex`

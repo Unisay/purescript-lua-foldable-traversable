@@ -63,20 +63,35 @@ foldr1Default = flip (runFoldRight1 <<< foldMap1 mkFoldRight1)
 -- | Note: when defining a `Foldable1` instance, this function is unsafe to use
 -- | in combination with `foldMap1DefaultL`.
 foldl1Default :: forall t a. Foldable1 t => (a -> a -> a) -> t a -> a
-foldl1Default = flip (runFoldRight1 <<< alaF Dual foldMap1 mkFoldRight1) <<< flip
+foldl1Default = flip (runFoldRight1 <<< alaF Dual foldMap1 mkFoldRight1) <<<
+  flip
 
 -- | A default implementation of `foldMap1` using `foldr1`.
 -- |
 -- | Note: when defining a `Foldable1` instance, this function is unsafe to use
 -- | in combination with `foldr1Default`.
-foldMap1DefaultR :: forall t m a. Foldable1 t => Functor t => Semigroup m => (a -> m) -> t a -> m
+foldMap1DefaultR
+  :: forall t m a
+   . Foldable1 t
+  => Functor t
+  => Semigroup m
+  => (a -> m)
+  -> t a
+  -> m
 foldMap1DefaultR f = map f >>> foldr1 (<>)
 
 -- | A default implementation of `foldMap1` using `foldl1`.
 -- |
 -- | Note: when defining a `Foldable1` instance, this function is unsafe to use
 -- | in combination with `foldl1Default`.
-foldMap1DefaultL :: forall t m a. Foldable1 t => Functor t => Semigroup m => (a -> m) -> t a -> m
+foldMap1DefaultL
+  :: forall t m a
+   . Foldable1 t
+  => Functor t
+  => Semigroup m
+  => (a -> m)
+  -> t a
+  -> m
 foldMap1DefaultL f = map f >>> foldl1 (<>)
 
 instance foldableDual :: Foldable1 Dual where
@@ -114,7 +129,8 @@ instance semigroupAct :: Apply f => Semigroup (Act f a) where
 
 -- | Traverse a data structure, performing some effects encoded by an
 -- | `Apply` instance at each value, ignoring the final result.
-traverse1_ :: forall t f a b. Foldable1 t => Apply f => (a -> f b) -> t a -> f Unit
+traverse1_
+  :: forall t f a b. Foldable1 t => Apply f => (a -> f b) -> t a -> f Unit
 traverse1_ f t = unit <$ getAct (foldMap1 (Act <<< f) t)
 
 -- | A version of `traverse1_` with its arguments flipped.
@@ -161,7 +177,10 @@ intercalateMap
   :: forall f m a
    . Foldable1 f
   => Semigroup m
-  => m -> (a -> m) -> f a -> m
+  => m
+  -> (a -> m)
+  -> f a
+  -> m
 intercalateMap j f foldable =
   joinee (foldMap1 (JoinWith <<< const <<< f) foldable) j
 
@@ -169,7 +188,9 @@ intercalateMap j f foldable =
 data FoldRight1 a = FoldRight1 (a -> (a -> a -> a) -> a) a
 
 instance foldRight1Semigroup :: Semigroup (FoldRight1 a) where
-  append (FoldRight1 lf lr) (FoldRight1 rf rr) = FoldRight1 (\a f -> lf (f lr (rf a f)) f) rr
+  append (FoldRight1 lf lr) (FoldRight1 rf rr) = FoldRight1
+    (\a f -> lf (f lr (rf a f)) f)
+    rr
 
 mkFoldRight1 :: forall a. a -> FoldRight1 a
 mkFoldRight1 = FoldRight1 const

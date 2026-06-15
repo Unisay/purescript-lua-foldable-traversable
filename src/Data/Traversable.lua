@@ -5,7 +5,7 @@ return {
   traverseArrayImpl = (function(apply)
     return function(map)
       return function(pure)
-        return function (appendArrays)
+        return function(appendArrays)
           return function(f)
             return function(array)
               local function go(bot, top)
