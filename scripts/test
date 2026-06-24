@@ -4,7 +4,8 @@ set -euo pipefail
 echo "Testing..."
 
 mkdir -p dist
-spago build --config spago-test.dhall --quiet
+spago build
+pslua --foreign-path . --ps-output output --entry Main --lua-output-file dist/test.lua
 
 if lua -e 'dofile("dist/test.lua").main()'; then
     echo "✅ Tests succeeded."
